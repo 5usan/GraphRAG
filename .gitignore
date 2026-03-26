@@ -1,0 +1,9 @@
+*.docx
+
+*.pyc
+
+src/datasets/*
+
+src/models/*
+
+.env
