@@ -3,9 +3,22 @@ from neo4j import GraphDatabase
 from rdflib import Graph, RDF, OWL
 
 from utils.logger import init_logger
-from utils.model import get_bert_embedding, get_word2vec_embedding, load_pretrained_bert, load_pretrained_word2vec
+from constants.constants import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+from utils.model import (
+    get_bert_embedding,
+    get_word2vec_embedding,
+    load_pretrained_bert,
+    load_pretrained_word2vec,
+)
 
 logger = init_logger()
+
+
+def get_neo4j_driver():
+    from main import app
+
+    return app.state.neo4j_driver
+
 
 def init_graph():
     try:
@@ -19,10 +32,10 @@ def init_graph():
 
 def connect_to_neo4j():
     try:
-        neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-        neo4j_user = os.getenv("NEO4J_USER", "neo4j")
-        neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
-        print(f"Connecting to Neo4j at {neo4j_uri} with user {neo4j_user}")
+        neo4j_uri = NEO4J_URI
+        neo4j_user = NEO4J_USER
+        neo4j_password = NEO4J_PASSWORD
+        logger.info(f"Connecting to Neo4j at {neo4j_uri} with user {neo4j_user}")
         driver = GraphDatabase.driver(
             neo4j_uri,
             auth=(neo4j_user, neo4j_password),
@@ -63,8 +76,8 @@ def create_class_nodes(session, graph):
     for cls in classes:
         class_name = str(cls).split("/")[-1]  # Get the local name of the class
         class_uri = str(cls)
-        word2vec_embedding = get_word2vec_embedding(word2vec_model, class_name) 
-        bert_embedding = get_bert_embedding(bert_model, class_name) 
+        word2vec_embedding = get_word2vec_embedding(word2vec_model, class_name)
+        bert_embedding = get_bert_embedding(bert_model, class_name)
 
         session.run(
             """
