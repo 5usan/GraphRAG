@@ -13,23 +13,6 @@ from utils.model import (
 
 logger = init_logger()
 
-
-def get_neo4j_driver():
-    from main import app
-
-    return app.state.neo4j_driver
-
-
-def init_graph():
-    try:
-        graph = Graph()
-        logger.info("RDF graph initialized successfully.")
-        return graph
-    except Exception as e:
-        logger.error(f"Error initializing RDF graph: {e}")
-        return None
-
-
 def connect_to_neo4j():
     try:
         neo4j_uri = NEO4J_URI
@@ -78,7 +61,9 @@ def create_class_nodes(session, graph):
         class_uri = str(cls)
         word2vec_embedding = get_word2vec_embedding(word2vec_model, class_name)
         bert_embedding = get_bert_embedding(bert_model, class_name)
-
+        if word2vec_embedding is None or bert_embedding is None:
+            logger.warning(f"Could not generate embeddings for class '{class_name}'")
+            continue
         session.run(
             """
             MERGE (c:Class {uri: $uri})

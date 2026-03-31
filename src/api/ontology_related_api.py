@@ -2,8 +2,10 @@ import os
 from fastapi import APIRouter, Depends
 
 from utils.logger import init_logger
+from utils.app_state import get_app_state
 from constants.constants import GRAPH_PATH
-from utils.graph import get_neo4j_driver, init_graph, save_ontology_to_neo4j
+from utils.graph_utils import init_graph
+from core.graph import save_ontology_to_neo4j
 
 logger = init_logger()
 
@@ -14,7 +16,7 @@ router = APIRouter()
 def save_ontology(
     ontology_name: str = "enslaved-v2",
     format: str = "ttl",
-    driver=Depends(get_neo4j_driver),
+    app_state=Depends(get_app_state),
 ):
     """
     Endpoint to save the ontology to Neo4j.
@@ -27,6 +29,7 @@ def save_ontology(
         )  # Support for other formats need to be added
         graph.parse(graph_path, format=graph_format)
         logger.info("Graph initialized and data loaded successfully.")
+        driver = app_state.neo4j_driver or None
         save_ontology_to_neo4j(driver, graph)
 
         return {"status": "OK", "message": "Ontology saved to Neo4j successfully!"}

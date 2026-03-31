@@ -3,9 +3,10 @@ from fastapi import FastAPI
 from rdflib import OWL, RDF, RDFS
 
 from utils.logger import init_logger
+from api.CQs_related_api import router as CQs_router
 from api.health_check_api import router as health_router
 from api.ontology_related_api import router as ontology_router
-from utils.graph import (
+from core.graph import (
     connect_to_neo4j,
     close_neo4j_connection,
 )
@@ -28,6 +29,7 @@ async def startup():
 #Routers
 app.include_router(health_router, tags=["Health Check"])
 app.include_router(ontology_router, tags=["Ontology"])
+app.include_router(CQs_router, tags=["Competency Questions"])
 
 
 @app.on_event("shutdown")
