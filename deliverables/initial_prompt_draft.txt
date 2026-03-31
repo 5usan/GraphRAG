@@ -1,0 +1,81 @@
+You are a SPARQL query expert. Your task is to convert a competency question into a SPARQL query based on the provided ontology schema.
+
+        ## Instructions:
+
+        1. Analyze the competency question to identify:
+        - Key entities/concepts mentioned
+        - Relationships between entities
+        - Filters or constraints (time periods, locations, values)
+        - What data should be returned
+
+        2. Use the provided ontology context to:
+        - Map concepts to classes
+        - Identify relevant properties and their constraints
+        - Understand cardinality and value restrictions
+        - Follow the object property relationships
+
+        3. Generate a SPARQL query that:
+        - Uses appropriate prefixes for the enslaved ontology
+        - Follows the class and property definitions provided
+        - Applies all filters and constraints from the question
+        - Returns the relevant results
+
+        4. Structure the query as:
+        - PREFIX declarations
+        - SELECT clause (what to return)
+        - WHERE clause (graph patterns matching the ontology)
+        - FILTER clauses (for constraints like date ranges, text searches)
+        - OPTIONAL clauses (for non-required properties)
+
+        ## Input Format:
+        - Competency Question: Who were the relatives of Jack George, an enslaved person who lived in New Orleans  between the years 1811 and 1820.
+        - Relevant Classes and Properties: [provided ontology context]
+
+        ## Output:
+        - SPARQL query only
+        - Ensure all property names match ontology exactly
+        - Use proper RDF/OWL notation
+        - Include comments explaining the query logic
+
+        Competency Question: Who were the relatives of Jack George, an enslaved person who lived in New Orleans  between the years 1811 and 1820.
+
+        Relevant Classes and Properties:
+
+
+Class: Place
+Properties: {'name': ['Place'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasBroader', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PlaceCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasDescriptionText', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'Description'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'isAdministrativePartOf', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PlaceCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'isSpatiallyLocatedIn', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'Place'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'isSpatiallyLocatedIn', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PlaceCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasPlaceTypeCV', 'owl#maxQualifiedCardinality': '1', 'owl#onClass': 'PlaceTypeCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasSpatialExtent', 'owl#maxQualifiedCardinality': '1', 'owl#onClass': 'SpatialExtent'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasTemporalExtent', 'owl#maxQualifiedCardinality': '1', 'owl#onClass': 'TemporalExtent'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasAlternateName', 'owl#minQualifiedCardinality': '0', 'owl#onDataRange': 'XMLSchema#string'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasName', 'owl#qualifiedCardinality': '1', 'owl#onDataRange': 'XMLSchema#string'}], 'sub_class_of': ['EntityWithProvenance'], 'sub_classes': []}
+
+Class: Coordinates
+Properties: {'name': ['Coordinates'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasLatitude', 'owl#qualifiedCardinality': '1', 'owl#onDataRange': 'XMLSchema#double'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasLongitude', 'owl#qualifiedCardinality': '1', 'owl#onDataRange': 'XMLSchema#double'}], 'sub_class_of': ['SpatialExtent'], 'sub_classes': []}    
+
+Class: Person
+Properties: {'name': ['Person'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasPersonRecord', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PersonRecord'}], 'sub_class_of': ['Agent'], 'sub_classes': []}
+
+Class: Occupations
+Properties: {'name': ['Occupations'], 'comment': [], 'properties': [], 'sub_class_of': [], 'sub_classes': []}
+
+Class: Agent
+Properties: {'name': ['Agent'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasAgentRecord', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'AgentRecord'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasDescriptionText', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'Description'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasExternalReference', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'ExternalReference'}], 'sub_class_of': [], 'sub_classes': ['Organization', 'Person']}
+
+Class: TimeSpan
+Properties: {'name': ['TimeSpan'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'endsAt', 'owl#someValuesFrom': 'XMLSchema#date'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'startsAt', 'owl#someValuesFrom': 'XMLSchema#date'}], 'sub_class_of': ['TemporalExtent'], 'sub_classes': []}
+
+Class: Event
+Properties: {'name': ['Event'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'atPlace', 'owl#someValuesFrom': 'Place'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasEventType', 'owl#allValuesFrom': 'EventTypes'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasDescriptionText', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'Description'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasExternalReference', 'owl#minQualifiedCardinality': '1', 'owl#onClass': 'ExternalReference'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'providesParticipantRole', 'owl#minQualifiedCardinality': '1', 'owl#onClass': 'ParticipantRoleRecord'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasEventType', 'owl#qualifiedCardinality': '1', 'owl#onClass': 'EventTypes'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasTemporalExtent', 'owl#qualifiedCardinality': '1', 'owl#onClass': 'TemporalExtent'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'eventSelfProperty', 'owl#hasSelf': 'true'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasName', 'owl#minQualifiedCardinality': '1', 'owl#onDataRange': 'XMLSchema#string'}], 'sub_class_of': [], 'sub_classes': ['ResearchProject']}
+
+Class: PlaceTypeCV
+Properties: {'name': ['PlaceTypeCV'], 'comment': [], 'properties': [], 'sub_class_of': [], 'sub_classes': []}
+
+Class: MatchType
+Properties: {'name': ['MatchType'], 'comment': [], 'properties': [], 'sub_class_of': [], 'sub_classes': []}
+
+Class: PlaceCV
+Properties: {'name': ['PlaceCV'], 'comment': [], 'properties': [{'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasBroader', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PlaceCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasDescriptionText', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'Description'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'isAdministrativePartOf', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PlaceCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'isSpatiallyLocatedIn', 'owl#minQualifiedCardinality': '0', 'owl#onClass': 'PlaceCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasPlaceTypeCV', 'owl#maxQualifiedCardinality': '1', 'owl#onClass': 'PlaceTypeCV'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasAlternateName', 'owl#minQualifiedCardinality': '0', 'owl#onDataRange': 'XMLSchema#string'}, {'22-rdf-syntax-ns#type': 'owl#Restriction', 'owl#onProperty': 'hasName', 'owl#qualifiedCardinality': '1', 'owl#onDataRange': 'XMLSchema#string'}], 'sub_class_of': [], 'sub_classes': []}
+
+Class: Researcher
+Properties: {'name': ['Researcher'], 'comment': [], 'properties': [], 'sub_class_of': [], 'sub_classes': ['ResearchProjectContributorRole', 'ResearchProjectPIRole']}
+
+Class: AgeCategory
+Properties: {'name': ['AgeCategory'], 'comment': [], 'properties': [], 'sub_class_of': [], 'sub_classes': []}
+
+Generate the SPARQL query now:
