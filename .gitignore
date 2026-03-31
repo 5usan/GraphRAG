@@ -1,5 +1,7 @@
 *.docx
 
+*.pdf
+
 *.pyc
 
 src/datasets/*
