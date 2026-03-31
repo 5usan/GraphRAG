@@ -54,10 +54,10 @@ def get_relavant_classes_for_cq(competency_question: str, classes: list):
                     bert_embedding, np.array(cls["bert_embedding"]).reshape(1, -1)
                 )
                 if bert_similarity[0][0] > 0.95:
-                    cls["name"] not in relavent_classes and relavent_classes.append(
-                        cls["name"]
-                    )
-
+                    if cls["name"] not in [c["name"] for c in relavent_classes]:
+                        relavent_classes.append(
+                            {"name": cls["name"]}
+                        )
         return relavent_classes
     except Exception as e:
         logger.error(f"Error occurred while getting relevant classes for competency question: {e}")
