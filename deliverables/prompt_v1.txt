@@ -1,0 +1,166 @@
+## Task Description:
+
+You are a Semantic Web expert. Your goal is to convert the following natural language question into a technically accurate SPARQL query based on the provided ontology schema.
+
+## Instructions:
+
+1. Think Step-by-Step: First, analyze the natural language query. Identify the key entities, properties, and relationships required.
+2. Draft the Logic: Write out the triple patterns and filters needed in plain English.
+3. Generate SPARQL: Finally, provide the formal SPARQL query.
+
+## Ontology Schema Information with relevant classes and their properties:
+
+Class: Place
+Parent Classes: EntityWithProvenance
+Sub Classes: None
+
+Required properties:
+  - hasName: exactly 1, type XMLSchema#string
+
+Optional properties:
+  - hasBroader: minimum 0, type PlaceCV
+  - hasDescriptionText: minimum 0, type Description
+  - isAdministrativePartOf: minimum 0, type PlaceCV
+  - isSpatiallyLocatedIn: minimum 0, type Place
+  - isSpatiallyLocatedIn: minimum 0, type PlaceCV
+  - hasPlaceTypeCV: minimum 0, type PlaceTypeCV
+  - hasSpatialExtent: minimum 0, type SpatialExtent
+  - hasTemporalExtent: minimum 0, type TemporalExtent
+  - hasAlternateName: minimum 0, type XMLSchema#string
+            
+Class: Coordinates
+Parent Classes: SpatialExtent
+Sub Classes: None
+
+Required properties:
+  - hasLatitude: exactly 1, type XMLSchema#double
+  - hasLongitude: exactly 1, type XMLSchema#double
+
+Optional properties:
+  None
+            
+Class: Person
+Parent Classes: Agent
+Sub Classes: None
+
+Required properties:
+  None
+
+Optional properties:
+  - hasPersonRecord: minimum 0, type PersonRecord
+            
+Class: Occupations
+Parent Classes: None
+Sub Classes: None
+
+Required properties:
+  None
+
+Optional properties:
+  None
+            
+Class: Agent
+Parent Classes: None
+Sub Classes: Organization, Person
+
+Required properties:
+  None
+
+Optional properties:
+  - hasAgentRecord: minimum 0, type AgentRecord
+  - hasDescriptionText: minimum 0, type Description
+  - hasExternalReference: minimum 0, type ExternalReference
+            
+Class: MatchType
+Parent Classes: None
+Sub Classes: None
+
+Required properties:
+  None
+
+Optional properties:
+  None
+            
+Class: PlaceCV
+Parent Classes: None
+Sub Classes: None
+
+Required properties:
+  - hasName: exactly 1, type XMLSchema#string
+
+Optional properties:
+  - hasBroader: minimum 0, type PlaceCV
+  - hasDescriptionText: minimum 0, type Description
+  - isAdministrativePartOf: minimum 0, type PlaceCV
+  - isSpatiallyLocatedIn: minimum 0, type PlaceCV
+  - hasPlaceTypeCV: minimum 0, type PlaceTypeCV
+  - hasAlternateName: minimum 0, type XMLSchema#string
+            
+Class: PlaceTypeCV
+Parent Classes: None
+Sub Classes: None
+
+Required properties:
+  None
+
+Optional properties:
+  None
+            
+Class: Researcher
+Parent Classes: None
+Sub Classes: ResearchProjectContributorRole, ResearchProjectPIRole
+
+Required properties:
+  None
+
+Optional properties:
+  None
+            
+Class: AgeCategory
+Parent Classes: None
+Sub Classes: None
+
+Required properties:
+  None
+
+Optional properties:
+  None
+            
+Class: Event
+Parent Classes: None
+Sub Classes: ResearchProject
+
+Required properties:
+  - hasExternalReference: minimum 1, type ExternalReference
+  - providesParticipantRole: minimum 1, type ParticipantRoleRecord
+  - hasEventType: exactly 1, type EventTypes
+  - hasTemporalExtent: exactly 1, type TemporalExtent
+  - hasName: minimum 1, type XMLSchema#string
+
+Optional properties:
+  - atPlace: minimum 0, type Place
+  - hasEventType: minimum 0, type EventTypes
+  - hasDescriptionText: minimum 0, type Description
+  - eventSelfProperty: minimum 0, type None
+            
+Class: TimeSpan
+Parent Classes: TemporalExtent
+Sub Classes: None
+
+Required properties:
+  None
+
+Optional properties:
+  - endsAt: minimum 0, type XMLSchema#date
+  - startsAt: minimum 0, type XMLSchema#date
+            
+
+## Competency Question:
+
+Who were the relatives of Jack George, an enslaved person who lived in New Orleans  between the years 1811 and 1820.
+
+## Output Format:
+
+Provide your response in natural language text. Use the following headers:
+# Reasoning
+# SPARQL Query

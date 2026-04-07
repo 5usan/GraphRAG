@@ -2,11 +2,11 @@
 
 ## Overview
 
-GraphRAG is a thesis project that implements a multi-modal Retrieval-Augmented Generation (RAG) framework using graph-based approaches. The project leverages ontologies, knowledge graphs, and embedding models to extract, structure, and query semantic information from RDF data sources.
+GraphRAG is a thesis project that implements a Retrieval-Augmented Generation (RAG) framework using graph-based approaches. The project leverages ontologies, knowledge graphs, and embedding models to extract, structure, and query semantic information from RDF data sources.
 
 ## Features
 
-- **RDF Ontology Processing**: Parse and process RDF and Turtle format ontologies (e.g., enslaved-v2.ttl)
+- **RDF Ontology Processing**: Parse and process RDF and Turtle format ontologies
 - **Graph Database Integration**: Store and query ontologies in Neo4j graph database
 - **Semantic Embeddings**: Generate embeddings using BERT and Word2Vec models
 - **FastAPI REST API**: Expose graph querying and processing capabilities via REST endpoints
@@ -24,9 +24,6 @@ GraphRAG is a thesis project that implements a multi-modal Retrieval-Augmented G
 │   │   └── constants.py        # Configuration constants (device, etc.)
 │   ├── datasets/
 │   │   ├── schema/             # RDF and ontology schema files
-│   │   │   ├── enslaved-v2.ttl
-│   │   │   ├── enslaved-v2.owl
-│   │   │   └── Pizza Tutorial.rdf
 │   │   └── data/               # Data files
 │   └── utils/
 │       ├── graph.py            # RDF graph and Neo4j utilities
@@ -112,17 +109,6 @@ Set the following environment variables:
 - `NEO4J_USER`: Neo4j username (default: `neo4j`)
 - `NEO4J_PASSWORD`: Neo4j password (default: `password`)
 
-## Datasets
-
-### Enslaved v2 Ontology
-The project includes the Enslaved v2 ontology schema in multiple formats:
-- **enslaved-v2.ttl**: Turtle format (used by default)
-- **enslaved-v2.owl**: OWL format
-- **enslaved-v2.properties**: Property definitions
-- **enslaved-v2.txt**: Text format documentation
-
-These schemas are automatically loaded into the RDF graph on application startup.
-
 ## API Endpoints
 
 Once running, the FastAPI application exposes REST endpoints for:
@@ -143,8 +129,8 @@ Access the interactive API documentation at `/docs` once the server is running.
 ## Development
 
 ### Project Status
-- Class extraction and embedding scripts implementation (in progress)
-- Multi-modal RAG framework development
+- Class extraction and embedding scripts implementation
+- RAG framework development
 - Neo4j integration and querying
 
 ### Contributing
