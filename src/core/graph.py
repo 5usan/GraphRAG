@@ -4,7 +4,7 @@ from rdflib import RDF, OWL, BNode, RDFS
 
 from utils.logger import init_logger
 from utils.graph_utils import init_graph
-from constants.constants import GRAPH_PATH, NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+from constants.constants import NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 from utils.model import (
     get_bert_embedding,
     get_word2vec_embedding,
@@ -91,14 +91,12 @@ def create_class_nodes(session, graph):
 
 
 def get_all_relavant_info_about_class(
-    class_name, ontology_name: str = "enslaved-v2", format="ttl"
+    class_name, graph_path,
 ):
     """Get all relevant information about a class from ontology file"""
     try:
         graph = init_graph()
-        graph_path = os.path.join(GRAPH_PATH, f"{ontology_name}.{format}")
-        graph_format = "turtle" if format == "ttl" else format
-        graph.parse(graph_path, format=graph_format)
+        graph.parse(graph_path, format="turtle")
         classes = list(set(graph.subjects(RDF.type, OWL.Class)))
         class_uri = None
 
@@ -161,10 +159,10 @@ def extract_restriction(graph, blank_node):
         restriction[pred_name] = obj_name
     return restriction if restriction else None
 
-def get_prefix_namespaces():
+def get_prefix_namespaces(graph_path):
     """Get all prefix namespaces from the RDF graph"""
     graph = init_graph()
-    graph.parse(os.path.join(GRAPH_PATH, "enslaved-v2.ttl"), format="turtle")
+    graph.parse(graph_path, format="turtle")
     namespaces = {}
     for prefix, namespace in graph.namespaces():
         if not prefix:  # Handle default namespace

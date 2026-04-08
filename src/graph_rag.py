@@ -49,16 +49,18 @@ output_dir = cli_args.output_dir
 logger.info(f"Ontology path: {ontology_path}")
 
 response = generate_prompt_for_multiple_cq_api(
-    file_name=None, file_path=cq_file_path, output_path=output_dir, app_state=None
+    file_name=None,
+    graph_path=ontology_path,
+    file_path=cq_file_path,
+    output_path=output_dir,
+    app_state=None,
 )
 logger.info(response["message"])
 
 # Usage:
-# python graph_rag.py 
-#   -o path/to/ontology.owl 
-#   -cq path/to/cqs.txt 
-#   -out output_directory 
-#   -v 
+# python graph_rag.py
+#   -o path/to/ontology.owl
+#   -cq path/to/cqs.txt
+#   -out output_directory
+#   -v
 #   --log-file graph_rag.log
-
-

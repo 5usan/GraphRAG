@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.post("/get_competency_question")
-def get_competency_question(competency_question: str, app_state=Depends(get_app_state)):
+def get_competency_question(competency_question: str, graph_path: str, app_state=Depends(get_app_state)):
     try:
         cq = get_key_words_related_to_cq(competency_question)
 
@@ -36,9 +36,9 @@ def get_competency_question(competency_question: str, app_state=Depends(get_app_
                     }
                 )
         relavent_classes = get_relavant_classes_for_cq(cq, classes)
-        prefix_namespaces = get_prefix_namespaces()
+        prefix_namespaces = get_prefix_namespaces(graph_path)
         for cls in relavent_classes:
-            info = get_all_relavant_info_about_class(cls["name"])
+            info = get_all_relavant_info_about_class(cls["name"], graph_path)
             cls["info"] = info
         # generate prompt for the LLM to answer the competency question using the relevant classes and their information and return the prompt to the user
         prompt = generate_sparql_prompt(
@@ -55,10 +55,10 @@ def get_competency_question(competency_question: str, app_state=Depends(get_app_
 
 @router.get("/get_all_relavant_info_about_class")
 def get_all_relavant_info_about_class_api(
-    class_name: str, ontology_name: str = "enslaved-v2", format="ttl"
+    class_name: str, graph_path: str
 ):
     try:
-        info = get_all_relavant_info_about_class(class_name, ontology_name, format)
+        info = get_all_relavant_info_about_class(class_name, graph_path)
         return {
             "status": "OK",
             "message": "Class information retrieved successfully!",
@@ -72,11 +72,10 @@ def get_all_relavant_info_about_class_api(
 # Api to get prompt for all competency questions with their relevant classes
 @router.post("/generate_prompt_for_multiple_cq")
 def generate_prompt_for_multiple_cq_api(
-    file_name: str, file_path: str = None, output_path: str = None, app_state=Depends(get_app_state)
+     graph_path: str, file_path: str, output_path: str, app_state=Depends(get_app_state)
 ):
     try:
         models = ["bert", "bge", "qwen", "nvidia"]
-        file_path = file_path or os.path.join(DATA_PATH, file_name)
         logger.info(f"Reading data from {file_path}...")
         file_content = None
         cq_with_relavant_classes = []
@@ -96,7 +95,7 @@ def generate_prompt_for_multiple_cq_api(
                 }
             )
         class_info = {}
-        prefix_namespaces = get_prefix_namespaces()
+        prefix_namespaces = get_prefix_namespaces(graph_path)
         # Generating prompt for each competency questions
         for each_cq in cq_with_relavant_classes:
             current_cq = each_cq["cq"]
@@ -113,7 +112,7 @@ def generate_prompt_for_multiple_cq_api(
                     if cls["name"] in classes_that_already_has_info:
                         info = class_info[cls["name"]]
                     else:
-                        info = get_all_relavant_info_about_class(cls["name"])
+                        info = get_all_relavant_info_about_class(cls["name"], graph_path)
                         class_info[cls["name"]] = info
                     cls["info"] = info
                 prompt = generate_sparql_prompt(current_cq, classes, prefix_namespaces)
