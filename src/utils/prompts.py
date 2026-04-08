@@ -2,22 +2,27 @@ from utils.logger import init_logger
 
 logger = init_logger()
 
-def generate_sparql_prompt(competency_question: str, relavent_classes: list):
+
+def generate_sparql_prompt(
+    competency_question: str, relavent_classes: list, prefix_namespaces: dict
+):
+    prefix_lines = "\n".join(
+        [f"{prefix}: <{uri}>" for prefix, uri in prefix_namespaces.items()]
+    )
     classes_section = ""
+
     for cls in relavent_classes:
         required, optional = parse_owl_properties(cls["info"]["properties"])
         sub_class_of = cls["info"].get("sub_class_of", [])
         sub_classes = cls["info"].get("sub_classes", [])
         classes_section += f"""
-Class: {cls['name'][0] if isinstance(cls['name'], list) else cls['name']}
+Subject Class: {cls['name'][0] if isinstance(cls['name'], list) else cls['name']}
 Parent Classes: {', '.join(sub_class_of) if sub_class_of else 'None'}
 Sub Classes: {', '.join(sub_classes) if sub_classes else 'None'}
 
-Required properties:
-{format_properties(required)}
-
-Optional properties:
-{format_properties(optional)}
+Properties:
+{format_properties(required) or ''}
+{format_properties(optional) or ''}
             """
         prompt = f"""
 ## Task Description:
@@ -30,8 +35,6 @@ You are a Semantic Web expert. Your goal is to convert the following natural lan
 2. Draft the Logic: Write out the triple patterns and filters needed in plain English.
 3. Generate SPARQL: Finally, provide the formal SPARQL query.
 
-## Ontology Schema Information with relevant classes and their properties:
-{classes_section}
 
 ## Competency Question:
 
@@ -40,8 +43,14 @@ You are a Semantic Web expert. Your goal is to convert the following natural lan
 ## Output Format:
 
 Provide your response in natural language text. Use the following headers:
-# Reasoning
-# SPARQL Query
+## Reasoning
+## SPARQL Query
+
+## Prefix and Namespace Information in new lines for each prefix:
+{prefix_lines}
+
+## Ontology Schema Information with relevant classes and their properties:
+{classes_section}
         """
     return prompt
 
@@ -91,7 +100,5 @@ def parse_owl_properties(properties: list) -> tuple:
 
 def format_properties(properties: list) -> str:
     if not properties:
-        return "  None"
-    return "\n".join(
-        [f"  - {p['name']}: {p['cardinality']}, type {p['type']}" for p in properties]
-    )
+        return None
+    return "\n".join([f"  - {p['name']} --> {p['type']}" for p in properties])

@@ -11,6 +11,7 @@ NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 
 GRAPH_PATH = os.path.join(os.getcwd(), "datasets", "schema")
+DATA_PATH = os.path.join(os.getcwd(), "datasets", "data")
 
 PREPOSITIONS = [
     "in",

@@ -1,18 +1,19 @@
 import os
-import numpy as np
-from core.graph import get_all_relavant_info_about_class
+import json
 from fastapi import APIRouter, Depends
-from sklearn.metrics.pairwise import cosine_similarity
 
 from utils.logger import init_logger
 from utils.app_state import get_app_state
+from constants.constants import DATA_PATH
 from utils.prompts import generate_sparql_prompt
+from core.graph import get_all_relavant_info_about_class, get_prefix_namespaces
 from utils.cq_utils import get_key_words_related_to_cq, get_relavant_classes_for_cq
 
 
 logger = init_logger()
 
 router = APIRouter()
+
 
 @router.post("/get_competency_question")
 def get_competency_question(competency_question: str, app_state=Depends(get_app_state)):
@@ -35,11 +36,14 @@ def get_competency_question(competency_question: str, app_state=Depends(get_app_
                     }
                 )
         relavent_classes = get_relavant_classes_for_cq(cq, classes)
+        prefix_namespaces = get_prefix_namespaces()
         for cls in relavent_classes:
             info = get_all_relavant_info_about_class(cls["name"])
             cls["info"] = info
         # generate prompt for the LLM to answer the competency question using the relevant classes and their information and return the prompt to the user
-        prompt = generate_sparql_prompt(competency_question, relavent_classes)
+        prompt = generate_sparql_prompt(
+            competency_question, relavent_classes, prefix_namespaces
+        )
         return {
             "status": "OK",
             "prompt": prompt,
@@ -62,4 +66,69 @@ def get_all_relavant_info_about_class_api(
         }
     except Exception as e:
         logger.error(f"Error occurred while retrieving class information: {e}")
+        return {"status": "ERROR", "message": str(e)}
+
+
+# Api to get prompt for all competency questions with their relevant classes
+@router.post("/generate_prompt_for_multiple_cq")
+def generate_prompt_for_multiple_cq_api(
+    file_name: str, file_path: str = None, output_path: str = None, app_state=Depends(get_app_state)
+):
+    try:
+        models = ["bert", "bge", "qwen", "nvidia"]
+        file_path = file_path or os.path.join(DATA_PATH, file_name)
+        logger.info(f"Reading data from {file_path}...")
+        file_content = None
+        cq_with_relavant_classes = []
+        with open(file_path, "r") as f:
+            file_content = json.load(f)
+        for data in file_content["summary"]:
+            cq_with_relavant_classes.append(
+                {
+                    "cq": data.get("cq"),
+                    "per_model": [
+                        {
+                            "model": model,
+                            "classes": data["per_model"][model]["top_classes"],
+                        }
+                        for model in models
+                    ],
+                }
+            )
+        class_info = {}
+        prefix_namespaces = get_prefix_namespaces()
+        # Generating prompt for each competency questions
+        for each_cq in cq_with_relavant_classes:
+            current_cq = each_cq["cq"]
+            for model_info in each_cq["per_model"]:
+                classes = [
+                    {"name": each_class["class"]}
+                    for each_class in model_info["classes"]
+                    if each_class is not None
+                ]
+                for cls in classes:
+                    classes_that_already_has_info = (
+                        class_info and class_info.keys() or []
+                    )
+                    if cls["name"] in classes_that_already_has_info:
+                        info = class_info[cls["name"]]
+                    else:
+                        info = get_all_relavant_info_about_class(cls["name"])
+                        class_info[cls["name"]] = info
+                    cls["info"] = info
+                prompt = generate_sparql_prompt(current_cq, classes, prefix_namespaces)
+                model_info["prompt"] = prompt
+        # Write everything back to the new file
+        output_file_path = output_path or os.path.join(DATA_PATH, f"prompt_{file_name}")
+        with open(output_file_path, "w") as f:
+            json.dump({"summary": cq_with_relavant_classes}, f, indent=4)
+
+        return {
+            "status": "OK",
+            "message": f"Prompts generated successfully and saved to {output_file_path}!",
+        }
+    except Exception as e:
+        logger.error(
+            f"Error occurred while retrieving relevant classes for competency question: {e}"
+        )
         return {"status": "ERROR", "message": str(e)}

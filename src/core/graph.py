@@ -99,7 +99,6 @@ def get_all_relavant_info_about_class(
         graph_path = os.path.join(GRAPH_PATH, f"{ontology_name}.{format}")
         graph_format = "turtle" if format == "ttl" else format
         graph.parse(graph_path, format=graph_format)
-
         classes = list(set(graph.subjects(RDF.type, OWL.Class)))
         class_uri = None
 
@@ -161,3 +160,14 @@ def extract_restriction(graph, blank_node):
         obj_name = str(obj).split("/")[-1] if "/" in str(obj) else str(obj)
         restriction[pred_name] = obj_name
     return restriction if restriction else None
+
+def get_prefix_namespaces():
+    """Get all prefix namespaces from the RDF graph"""
+    graph = init_graph()
+    graph.parse(os.path.join(GRAPH_PATH, "enslaved-v2.ttl"), format="turtle")
+    namespaces = {}
+    for prefix, namespace in graph.namespaces():
+        if not prefix:  # Handle default namespace
+            prefix = '@base'
+        namespaces[prefix] = str(namespace)
+    return namespaces   
