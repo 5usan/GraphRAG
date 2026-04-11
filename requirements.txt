@@ -1,0 +1,10 @@
+gensim
+neo4j
+uvicorn
+fastapi
+numpy
+python-dotenv
+rdflib
+scikit_learn
+torch
+transformers

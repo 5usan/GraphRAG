@@ -49,7 +49,6 @@ output_dir = cli_args.output_dir
 logger.info(f"Ontology path: {ontology_path}")
 
 response = generate_prompt_for_multiple_cq_api(
-    file_name=None,
     graph_path=ontology_path,
     file_path=cq_file_path,
     output_path=output_dir,
@@ -64,3 +63,6 @@ logger.info(response["message"])
 #   -out output_directory
 #   -v
 #   --log-file graph_rag.log
+
+#Example:
+# python graph_rag.py -o "./datasets/schema/enslaved-v2.ttl" -cq "./datasets/data/sentence_embedding_results.json" -out "./datasets/data/hi_sentence_embedding_results.json"

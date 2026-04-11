@@ -62,7 +62,7 @@ def create_class_nodes(session, graph):
     """Create owl:Class nodes in Neo4j"""
     classes = list(set(graph.subjects(RDF.type, OWL.Class)))
     logger.info(f"Found {len(classes)} classes in the RDF graph")
-    word2vec_model = load_pretrained_word2vec()
+    # word2vec_model = load_pretrained_word2vec()
     bert_model = load_pretrained_bert()
     for cls in classes:
         if isinstance(cls, BNode):
@@ -70,9 +70,9 @@ def create_class_nodes(session, graph):
             continue
         class_name = str(cls).split("/")[-1]  # Get the local name of the class
         class_uri = str(cls)
-        word2vec_embedding = get_word2vec_embedding(word2vec_model, class_name)
+        # word2vec_embedding = get_word2vec_embedding(word2vec_model, class_name)
         bert_embedding = get_bert_embedding(bert_model, class_name)
-        if word2vec_embedding is None or bert_embedding is None:
+        if bert_embedding is None:
             logger.warning(f"Could not generate embeddings for class '{class_name}'")
             continue
         session.run(
@@ -84,7 +84,7 @@ def create_class_nodes(session, graph):
             """,
             uri=class_uri,
             name=class_name,
-            word2vec_embedding=word2vec_embedding,
+            # word2vec_embedding=word2vec_embedding,
             bert_embedding=bert_embedding,
         )
     logger.info(f"Created {len(classes)} Class nodes in Neo4j")

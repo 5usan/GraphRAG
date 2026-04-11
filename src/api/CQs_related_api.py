@@ -118,7 +118,7 @@ def generate_prompt_for_multiple_cq_api(
                 prompt = generate_sparql_prompt(current_cq, classes, prefix_namespaces)
                 model_info["prompt"] = prompt
         # Write everything back to the new file
-        output_file_path = output_path or os.path.join(DATA_PATH, f"prompt_{file_name}")
+        output_file_path = output_path or os.path.join(DATA_PATH, f"output.json")
         with open(output_file_path, "w") as f:
             json.dump({"summary": cq_with_relavant_classes}, f, indent=4)
 
