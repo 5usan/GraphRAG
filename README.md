@@ -19,6 +19,7 @@ GraphRAG is a thesis project that implements a Retrieval-Augmented Generation (R
 .
 ├── src/
 │   ├── main.py                 # FastAPI application entry point
+|   |──graph_rag.py             # Script to generate prompts for multiple CQs
 │   ├── Makefile                # Build and run targets
 │   ├── constants/
 │   │   └── constants.py        # Configuration constants (device, etc.)
@@ -33,13 +34,6 @@ GraphRAG is a thesis project that implements a Retrieval-Augmented Generation (R
 ├── meeting-minutes/            # Project meeting notes and progress
 └── README.md
 ```
-
-## Prerequisites
-
-- Python 3.8+
-- Neo4j Graph Database (local or remote)
-- CUDA-capable GPU (optional, for accelerated processing)
-- Required Python packages (see Installation)
 
 ## Installation
 
@@ -57,7 +51,7 @@ GraphRAG is a thesis project that implements a Retrieval-Augmented Generation (R
 
 3. **Install dependencies**:
    ```bash
-   pip install fastapi uvicorn neo4j rdflib torch transformers gensim python-dotenv
+   pip install -r requirements.txt
    ```
 
 4. **Configure environment variables**:
@@ -83,9 +77,6 @@ make dev
 cd src
 make run
 ```
-
-The API will be available at `http://localhost:8000`
-API documentation available at `http://localhost:8000/docs`
 
 ### Available Make Commands
 
@@ -123,7 +114,7 @@ Access the interactive API documentation at `/docs` once the server is running.
 
 - **RDF Graph Processing**: Uses RDFLib for parsing and managing RDF/OWL ontologies
 - **Graph Database**: Neo4j stores and indexes the semantic graph
-- **Embeddings**: BERT and Word2Vec models generate semantic embeddings for classes and properties
+- **Embeddings**: BERT model generates semantic embeddings for classes and properties
 - **API Layer**: FastAPI provides RESTful access to all functionality
 
 ## Development
@@ -133,6 +124,43 @@ Access the interactive API documentation at `/docs` once the server is running.
 - RAG framework development
 - Neo4j integration and querying
 
+## Running with Singularity
+
+Singularity is a container platform optimized for HPC environments. It's the recommended approach for production deployment.
+
+### Prerequisites for Singularity
+
+- Singularity 3.8+ installed
+- `sudo` access (for building containers)
+- ~2GB disk space for container image
+
+### Building the Singularity Container
+
+```bash
+# Build the container (one-time setup)
+sudo singularity build graphrag.sif Singularity.def
+
+# Verify successful build
+singularity inspect graphrag.sif
+
+# Run singularity file
+singularity run --env NEO4J_URI="URI",NEO4J_USER="USER",NEO4J_PASSWORD="PASSWORD" graphrag.sif
+
+```
+
+### Building the docker Container
+
+```bash
+# Build the Docker image
+docker build -t graphrag:latest .
+
+# Verify build
+docker images | grep graphrag
+
+#Run container
+ docker run -p 8000:8000 --env-file "PATH_OF_ENV" graphrag:latest    
+
+```
 ### Contributing
 This is a thesis project. For contributions or collaboration, please contact the project leads.
 
