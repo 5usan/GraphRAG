@@ -24,35 +24,14 @@ Properties:
 {format_properties(required) or ''}
 {format_properties(optional) or ''}
             """
-        prompt = f"""
-## Task Description:
-
-You are a Semantic Web expert. Your goal is to convert the following natural language question into a technically accurate SPARQL query based on the provided ontology schema.
-
-## Instructions:
-
-1. Think Step-by-Step: First, analyze the natural language query. Identify the key entities, properties, and relationships required.
-2. Draft the Logic: Write out the triple patterns and filters needed in plain English.
-3. Generate SPARQL: Finally, provide the formal SPARQL query.
-
-
-## Competency Question:
-
-{competency_question}
-
-## Output Format:
-
-Provide your response in natural language text. Use the following headers:
-## Reasoning
-## SPARQL Query
-
+        context = f"""
 ## Prefix and Namespace Information in new lines for each prefix:
 {prefix_lines}
 
 ## Ontology Schema Information with relevant classes and their properties:
 {classes_section}
         """
-    return prompt
+    return context
 
 
 def parse_owl_properties(properties: list) -> tuple:

@@ -91,7 +91,8 @@ def create_class_nodes(session, graph):
 
 
 def get_all_relavant_info_about_class(
-    class_name, graph_path,
+    class_name,
+    graph_path,
 ):
     """Get all relevant information about a class from ontology file"""
     try:
@@ -110,6 +111,7 @@ def get_all_relavant_info_about_class(
 
         class_info = {
             "name": [class_name],
+            "uri": class_uri,
             "comment": [],
             "properties": [],  # Store all properties with constraints
             "sub_class_of": [],
@@ -159,13 +161,42 @@ def extract_restriction(graph, blank_node):
         restriction[pred_name] = obj_name
     return restriction if restriction else None
 
-def get_prefix_namespaces(graph_path):
-    """Get all prefix namespaces from the RDF graph"""
-    graph = init_graph()
-    graph.parse(graph_path, format="turtle")
-    namespaces = {}
-    for prefix, namespace in graph.namespaces():
-        if not prefix:  # Handle default namespace
-            prefix = '@base'
-        namespaces[prefix] = str(namespace)
-    return namespaces   
+
+def get_prefix_namespaces(graph_path, class_uri=None):
+    try:
+        """Get all prefix namespaces from the RDF graph"""
+        graph = init_graph()
+        graph.parse(graph_path, format="turtle")
+
+        # Collect all URIs related to this class
+        related_uris = {str(class_uri)}
+        for predicate, obj in graph.predicate_objects(subject=class_uri):
+            related_uris.add(str(predicate))
+            if hasattr(obj, "n3"):  # Check if it's a URI/Resource
+                related_uris.add(str(obj))
+
+        # Also check for triples where this class is the object
+        for subject, predicate in graph.subject_predicates(object=class_uri):
+            related_uris.add(str(subject))
+            related_uris.add(str(predicate))
+        # Map namespaces to prefixes
+        namespaces = {}
+        for uri in related_uris:
+            # Find matching namespace prefix
+            for prefix, namespace in graph.namespaces():
+                if uri.startswith(str(namespace)):
+                    if not prefix:
+                        prefix = "enslaved"
+                    namespaces[prefix] = str(namespace)
+                    break
+
+        # logger.info(f"Extracted {namespaces} namespaces related to class '{class_name}'")
+        # namespaces = {}
+        # for prefix, namespace in graph.namespaces():
+        #     if not prefix:  # Handle default namespace
+        #         prefix = '@base'
+        #     namespaces[prefix] = str(namespace)
+        return namespaces
+    except Exception as e:
+        logger.error(f"Error occurred while extracting namespaces: {e}")
+        return {}

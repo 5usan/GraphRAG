@@ -41,12 +41,12 @@ def get_competency_question(competency_question: str, graph_path: str, app_state
             info = get_all_relavant_info_about_class(cls["name"], graph_path)
             cls["info"] = info
         # generate prompt for the LLM to answer the competency question using the relevant classes and their information and return the prompt to the user
-        prompt = generate_sparql_prompt(
+        context = generate_sparql_prompt(
             competency_question, relavent_classes, prefix_namespaces
         )
         return {
             "status": "OK",
-            "prompt": prompt,
+            "context": context,
         }
     except Exception as e:
         logger.error(f"Error occurred while saving competency question: {e}")
@@ -95,7 +95,7 @@ def generate_prompt_for_multiple_cq_api(
                 }
             )
         class_info = {}
-        prefix_namespaces = get_prefix_namespaces(graph_path)
+        prefix_namespaces = {}
         # Generating prompt for each competency questions
         for each_cq in cq_with_relavant_classes:
             current_cq = each_cq["cq"]
@@ -115,8 +115,9 @@ def generate_prompt_for_multiple_cq_api(
                         info = get_all_relavant_info_about_class(cls["name"], graph_path)
                         class_info[cls["name"]] = info
                     cls["info"] = info
-                prompt = generate_sparql_prompt(current_cq, classes, prefix_namespaces)
-                model_info["prompt"] = prompt
+                    prefix_namespaces.update(get_prefix_namespaces(graph_path, cls["info"]["uri"]))
+                context = generate_sparql_prompt(current_cq, classes, prefix_namespaces)
+                model_info["context"] = context
         # Write everything back to the new file
         output_file_path = output_path or os.path.join(DATA_PATH, f"output.json")
         with open(output_file_path, "w") as f:
