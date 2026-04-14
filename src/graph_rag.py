@@ -63,6 +63,9 @@ logger.info(response["message"])
 #   -out output_directory
 #   -v
 #   --log-file graph_rag.log
-
+1
 #Example:
-# python graph_rag.py -o "./datasets/schema/enslaved-v2.ttl" -cq "./datasets/data/sentence_embedding_results.json" -out "./datasets/data/hi_sentence_embedding_results.json"
+# python graph_rag.py 
+#   -o "/home/w2493sxs/datasets/schema/enslaved-v2.ttl" 
+#   -cq "/home/w2493sxs/datasets/data/sentence_embedding_results.json" 
+#   -out "/home/w2493sxs/datasets/output/hi_sentence_embedding_results.json"

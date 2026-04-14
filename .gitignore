@@ -9,3 +9,5 @@ src/datasets/*
 src/models/*
 
 .env
+
+*.sif
