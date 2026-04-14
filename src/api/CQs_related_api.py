@@ -16,7 +16,9 @@ router = APIRouter()
 
 
 @router.post("/get_competency_question")
-def get_competency_question(competency_question: str, graph_path: str, app_state=Depends(get_app_state)):
+def get_competency_question(
+    competency_question: str, graph_path: str, app_state=Depends(get_app_state)
+):
     try:
         cq = get_key_words_related_to_cq(competency_question)
 
@@ -54,9 +56,7 @@ def get_competency_question(competency_question: str, graph_path: str, app_state
 
 
 @router.get("/get_all_relavant_info_about_class")
-def get_all_relavant_info_about_class_api(
-    class_name: str, graph_path: str
-):
+def get_all_relavant_info_about_class_api(class_name: str, graph_path: str):
     try:
         info = get_all_relavant_info_about_class(class_name, graph_path)
         return {
@@ -72,7 +72,7 @@ def get_all_relavant_info_about_class_api(
 # Api to get prompt for all competency questions with their relevant classes
 @router.post("/generate_prompt_for_multiple_cq")
 def generate_prompt_for_multiple_cq_api(
-     graph_path: str, file_path: str, output_path: str, app_state=Depends(get_app_state)
+    graph_path: str, file_path: str, output_path: str, app_state=Depends(get_app_state)
 ):
     try:
         models = ["bert", "bge", "qwen", "nvidia"]
@@ -81,6 +81,13 @@ def generate_prompt_for_multiple_cq_api(
         cq_with_relavant_classes = []
         with open(file_path, "r") as f:
             file_content = json.load(f)
+            models = (
+                file_content["summary"][0]["per_model"].keys()
+                if file_content
+                and "summary" in file_content
+                and len(file_content["summary"]) > 0
+                else models
+            )
         for data in file_content["summary"]:
             cq_with_relavant_classes.append(
                 {
@@ -112,10 +119,12 @@ def generate_prompt_for_multiple_cq_api(
                     if cls["name"] in classes_that_already_has_info:
                         info = class_info[cls["name"]]
                     else:
-                        info = get_all_relavant_info_about_class(cls["name"], graph_path)
+                        info = get_all_relavant_info_about_class(
+                            cls["name"], graph_path
+                        )
                         class_info[cls["name"]] = info
                     cls["info"] = info
-                    prefix_namespaces.update(get_prefix_namespaces(graph_path, cls["info"]["uri"]))
+                    prefix_namespaces.update(cls["info"]["namespaces"])
                 context = generate_sparql_prompt(current_cq, classes, prefix_namespaces)
                 model_info["context"] = context
         # Write everything back to the new file

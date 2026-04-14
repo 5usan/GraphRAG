@@ -10,19 +10,22 @@ def generate_sparql_prompt(
         [f"{prefix}: <{uri}>" for prefix, uri in prefix_namespaces.items()]
     )
     classes_section = ""
-
     for cls in relavent_classes:
         required, optional = parse_owl_properties(cls["info"]["properties"])
         sub_class_of = cls["info"].get("sub_class_of", [])
         sub_classes = cls["info"].get("sub_classes", [])
+        properties_section = ""
+        if required or optional:
+            properties_section = f"""
+Properties:
+{format_properties(required) or ''}
+{format_properties(optional) or ''}"""
+
         classes_section += f"""
 Subject Class: {cls['name'][0] if isinstance(cls['name'], list) else cls['name']}
 Parent Classes: {', '.join(sub_class_of) if sub_class_of else 'None'}
 Sub Classes: {', '.join(sub_classes) if sub_classes else 'None'}
-
-Properties:
-{format_properties(required) or ''}
-{format_properties(optional) or ''}
+{properties_section}
             """
         context = f"""
 ## Prefix and Namespace Information in new lines for each prefix:
@@ -41,6 +44,8 @@ def parse_owl_properties(properties: list) -> tuple:
 
     for prop in properties:
         prop_name = prop.get("owl#onProperty", "Unknown")
+        if prop_name == "Unknown":
+            continue  # Skip if we can't determine the property name
         prop_type = None
         cardinality = "N/A"
 
