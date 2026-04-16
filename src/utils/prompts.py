@@ -10,8 +10,11 @@ def generate_sparql_prompt(
         [f"{prefix}: <{uri}>" for prefix, uri in prefix_namespaces.items()]
     )
     classes_section = ""
+    annotation = []
     for cls in relavent_classes:
         required, optional = parse_owl_properties(cls["info"]["properties"])
+        if "annotation" in cls and cls["annotation"] is not None:
+            annotation.append(cls["annotation"])
         sub_class_of = cls["info"].get("sub_class_of", [])
         sub_classes = cls["info"].get("sub_classes", [])
         properties_section = ""
@@ -19,21 +22,25 @@ def generate_sparql_prompt(
             properties_section = f"""
 Properties:
 {format_properties(required) or ''}
-{format_properties(optional) or ''}"""
+{format_properties(optional) or ''}
+        """
 
         classes_section += f"""
-Subject Class: {cls['name'][0] if isinstance(cls['name'], list) else cls['name']}
+Subject Class: {cls["info"]['name'][0] if isinstance(cls["info"]['name'], list) else cls["info"]['name']}
 Parent Classes: {', '.join(sub_class_of) if sub_class_of else 'None'}
 Sub Classes: {', '.join(sub_classes) if sub_classes else 'None'}
 {properties_section}
             """
-        context = f"""
-## Prefix and Namespace Information in new lines for each prefix:
+    context = f"""
+## Prefix and Namespace Information:
 {prefix_lines}
 
 ## Ontology Schema Information with relevant classes and their properties:
 {classes_section}
-        """
+    """
+    if annotation:
+        annotation_str = '\n\n'.join(annotation)
+        context += f"\n## Annotations for relevant classes:\n{annotation_str}"
     return context
 
 
@@ -43,7 +50,7 @@ def parse_owl_properties(properties: list) -> tuple:
     optional = []
 
     for prop in properties:
-        prop_name = prop.get("owl#onProperty", "Unknown")
+        prop_name = prop.get("owl#onProperty") or prop.get("owl#inverseOf", "Unknown")
         if prop_name == "Unknown":
             continue  # Skip if we can't determine the property name
         prop_type = None
@@ -60,6 +67,8 @@ def parse_owl_properties(properties: list) -> tuple:
         elif "owl#allValuesFrom" in prop:
             prop_type = prop["owl#allValuesFrom"]
             cardinality = "all values"
+        elif "owl#hasSelf" in prop:
+            prop_type = prop["owl#hasSelf"]
 
         # Determine if required or optional based on cardinality
         min_card = int(prop.get("owl#minQualifiedCardinality", 0))
@@ -71,12 +80,22 @@ def parse_owl_properties(properties: list) -> tuple:
             elif min_card >= 1:
                 cardinality = f"minimum {min_card}"
             required.append(
-                {"name": prop_name, "type": prop_type, "cardinality": cardinality}
+                {
+                    "name": prop_name,
+                    "type": prop_type,
+                    "cardinality": cardinality,
+                    "isInverse": prop_name == prop.get("owl#inverseOf"),
+                }
             )
         else:  # Optional
             cardinality = f"minimum {min_card}"
             optional.append(
-                {"name": prop_name, "type": prop_type, "cardinality": cardinality}
+                {
+                    "name": prop_name,
+                    "type": prop_type,
+                    "cardinality": cardinality,
+                    "isInverse": prop_name == prop.get("owl#inverseOf"),
+                }
             )
 
     return required, optional
@@ -85,4 +104,9 @@ def parse_owl_properties(properties: list) -> tuple:
 def format_properties(properties: list) -> str:
     if not properties:
         return None
-    return "\n".join([f"  - {p['name']} --> {p['type']}" for p in properties])
+    return "\n".join(
+        [
+            f"  - {p['name']} --> {p['type']}, {'inverse property' if p['isInverse'] else ''}"
+            for p in properties
+        ]
+    )

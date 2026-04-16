@@ -108,15 +108,16 @@ def get_all_relavant_info_about_class(
         else:
             logger.warning(f"Class '{class_name}' not found in ontology")
             return None
-
+        namespaces = get_namespaces(graph, class_uri)
+        name_with_prefix = get_prefix_of_class(namespaces, class_uri, class_name)
         class_info = {
-            "name": [class_name],
+            "name": [name_with_prefix],
             "uri": class_uri,
             "comment": [],
             "properties": [],  # Store all properties with constraints
             "sub_class_of": [],
             "sub_classes": [],
-            "namespaces": get_prefix_namespaces(graph_path, class_uri),
+            "namespaces": namespaces,
         }
 
         # Extract all predicates and objects
@@ -124,8 +125,8 @@ def get_all_relavant_info_about_class(
             pred_name = str(predicate).split("/")[-1]
 
             # Extract comments
-            if pred_name in ["comment", "label", "description"]:
-                class_info["comment"].append(str(obj))
+            # if pred_name in ["comment", "label", "description"]:
+            #     class_info["comment"].append(str(obj))
 
             # Extract superclasses with restrictions
             if isinstance(obj, BNode):
@@ -136,14 +137,20 @@ def get_all_relavant_info_about_class(
             else:
                 obj_name = str(obj).split("/")[-1]
                 if pred_name == "rdf-schema#subClassOf":
-                    class_info["sub_class_of"].append(obj_name)
+                    subClassOf_name_with_prefix = get_prefix_of_class(
+                        namespaces, obj, obj_name
+                    )
+                    class_info["sub_class_of"].append(subClassOf_name_with_prefix)
 
         # Find subclasses
         subclasses = list(graph.subjects(RDFS.subClassOf, class_uri))
         for subclass in subclasses:
             if not isinstance(subclass, BNode):
                 subclass_name = str(subclass).split("/")[-1]
-                class_info["sub_classes"].append(subclass_name)
+                subclass_name_with_prefix = get_prefix_of_class(
+                    namespaces, subclass, subclass_name
+                )
+                class_info["sub_classes"].append(subclass_name_with_prefix)
 
         logger.info(f"Retrieved information for class '{class_name}'")
         return class_info
@@ -157,24 +164,33 @@ def extract_restriction(graph, blank_node):
     """Extract all constraints from an OWL restriction (blank node)"""
     restriction = {}
     for pred, obj in graph.predicate_objects(subject=blank_node):
+        if isinstance(obj, BNode):
+            # Recursively extract nested restrictions
+            nested_restriction = extract_restriction(graph, obj)
+            if nested_restriction:
+                restriction.update(nested_restriction)
+            continue
         pred_name = str(pred).split("/")[-1]
         obj_name = str(obj).split("/")[-1] if "/" in str(obj) else str(obj)
-        restriction[pred_name] = obj_name
+        namespaces = get_namespaces(graph, obj)
+        obj_name_with_prefix = get_prefix_of_class(namespaces, obj, obj_name)
+        restriction[pred_name] = (
+            obj_name_with_prefix if obj_name_with_prefix else obj_name
+        )
     return restriction if restriction else None
 
-def get_prefix_namespaces(graph_path, class_uri=None):
+
+def get_namespaces(graph, class_uri=None):
     try:
         """Get all prefix namespaces from the RDF graph"""
-        graph = init_graph()
-        graph.parse(graph_path, format="turtle")
         namespaces = {}
         if class_uri is not None:
             # Collect all URIs related to this class
             related_uris = {str(class_uri)}
             for predicate, obj in graph.predicate_objects(subject=class_uri):
                 if isinstance(obj, BNode):
-                 for pred, obj in graph.predicate_objects(subject=obj):
-                    related_uris.add(str(obj))
+                    for pred, obj in graph.predicate_objects(subject=obj):
+                        related_uris.add(str(obj))
                 related_uris.add(str(predicate))
                 if hasattr(obj, "n3"):  # Check if it's a URI/Resource
                     related_uris.add(str(obj))
@@ -193,6 +209,19 @@ def get_prefix_namespaces(graph_path, class_uri=None):
                         namespaces[prefix] = str(namespace)
                         break
         return namespaces
+    except Exception as e:
+        logger.error(f"Error occurred while extracting namespaces: {e}")
+        return {}
+
+
+def get_prefix_of_class(namespaces, class_uri, class_name):
+    try:
+        name_with_prefix = None
+        for prefix, namespace in namespaces.items():
+            if str(class_uri).startswith(str(namespace)):
+                name_with_prefix = f"{prefix}:{class_name}"
+                break
+        return name_with_prefix
     except Exception as e:
         logger.error(f"Error occurred while extracting namespaces: {e}")
         return {}
