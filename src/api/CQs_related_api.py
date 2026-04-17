@@ -1,16 +1,24 @@
 import os
 import json
-from fastapi import APIRouter, Depends
 
 from utils.logger import init_logger
+
+logger = init_logger()
+try:
+    from fastapi import APIRouter, Depends
+except ImportError:
+    # if fastapi is not installed, thats fine
+    APIRouter = None
+    Depends = None
+    logger.warning(
+        "FastAPI is not installed. API routes will not be available. I guess a script is running which doesn't require FastAPI, so it's fine. If you want to use the API routes, please install FastAPI."
+    )
+
 from utils.app_state import get_app_state
 from constants.constants import DATA_PATH
 from utils.prompts import generate_sparql_prompt
 from core.graph import get_all_relavant_info_about_class, get_namespaces
 from utils.cq_utils import get_key_words_related_to_cq, get_relavant_classes_for_cq
-
-
-logger = init_logger()
 
 router = APIRouter()
 
