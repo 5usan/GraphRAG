@@ -208,7 +208,14 @@ def get_namespaces(graph, class_uri=None):
                             prefix = "enslaved"
                         namespaces[prefix] = str(namespace)
                         break
-        return namespaces
+            return namespaces
+        else:
+            # If no class_uri provided, return all namespaces in the graph
+            for prefix, namespace in graph.namespaces():
+                if not prefix:
+                    prefix = "enslaved"
+                namespaces[prefix] = str(namespace)
+            return namespaces
     except Exception as e:
         logger.error(f"Error occurred while extracting namespaces: {e}")
         return {}

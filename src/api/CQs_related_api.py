@@ -23,44 +23,44 @@ from utils.cq_utils import get_key_words_related_to_cq, get_relavant_classes_for
 router = APIRouter()
 
 # Need to fix this api
-# @router.post("/get_competency_question")
-# def get_competency_question(
-#     competency_question: str, graph_path: str, app_state=Depends(get_app_state)
-# ):
-#     try:
-#         cq = get_key_words_related_to_cq(competency_question)
+@router.post("/get_competency_question")
+def get_competency_question(
+    competency_question: str, graph_path: str, app_state=Depends(get_app_state)
+):
+    try:
+        cq = get_key_words_related_to_cq(competency_question)
 
-#         driver = app_state.neo4j_driver or None
-#         # get all nodes with all their properties from neo4j dataset
-#         classes = []
-#         with driver.session() as session:
-#             result = session.run(
-#                 "MATCH (n) RETURN n.name AS name, n.bert_embedding AS bert_embedding, n.word2vec_embedding AS word2vec_embedding"
-#             )
-#             for record in result:
-#                 classes.append(
-#                     {
-#                         "name": record["name"],
-#                         "bert_embedding": record["bert_embedding"],
-#                         "word2vec_embedding": record["word2vec_embedding"],
-#                     }
-#                 )
-#         relavent_classes = get_relavant_classes_for_cq(cq, classes)
-#         prefix_namespaces = get_namespaces(graph_path)
-#         for cls in relavent_classes:
-#             info = get_all_relavant_info_about_class(cls["name"], graph_path)
-#             cls["info"] = info
-#         # generate prompt for the LLM to answer the competency question using the relevant classes and their information and return the prompt to the user
-#         context = generate_sparql_prompt(
-#             competency_question, relavent_classes, prefix_namespaces
-#         )
-#         return {
-#             "status": "OK",
-#             "context": context,
-#         }
-#     except Exception as e:
-#         logger.error(f"Error occurred while saving competency question: {e}")
-#         return {"status": "ERROR", "message": str(e)}
+        driver = app_state.neo4j_driver or None
+        # get all nodes with all their properties from neo4j dataset
+        classes = []
+        with driver.session() as session:
+            result = session.run(
+                "MATCH (n) RETURN n.name AS name, n.bert_embedding AS bert_embedding, n.word2vec_embedding AS word2vec_embedding"
+            )
+            for record in result:
+                classes.append(
+                    {
+                        "name": record["name"],
+                        "bert_embedding": record["bert_embedding"],
+                        "word2vec_embedding": record["word2vec_embedding"],
+                    }
+                )
+        relavent_classes = get_relavant_classes_for_cq(cq, classes)
+        prefix_namespaces = get_namespaces(graph_path)
+        for cls in relavent_classes:
+            info = get_all_relavant_info_about_class(cls["name"], graph_path)
+            cls["info"] = info
+        # generate prompt for the LLM to answer the competency question using the relevant classes and their information and return the prompt to the user
+        context = generate_sparql_prompt(
+            competency_question, relavent_classes, prefix_namespaces
+        )
+        return {
+            "status": "OK",
+            "context": context,
+        }
+    except Exception as e:
+        logger.error(f"Error occurred while saving competency question: {e}")
+        return {"status": "ERROR", "message": str(e)}
 
 
 @router.get("/get_all_relavant_info_about_class")
